@@ -610,7 +610,7 @@ var optionsDefaults = {
   preventMouseEventsDefault: true, // enable or disable preventDefault for mouse events
   zoomScaleSensitivity: 0.1, // Zoom sensitivity
   minZoom: 0.5, // Minimum Zoom level
-  maxZoom: 10, // Maximum Zoom level
+  maxZoom: 500, // Maximum Zoom level
   fit: true, // enable or disable viewport fit in SVG (default true)
   contain: false, // enable or disable viewport contain the svg (default false)
   center: true, // enable or disable viewport centering in SVG (default true)
@@ -712,7 +712,10 @@ SvgPanZoom.prototype.init = function (svg, options) {
   var text = [this.svg.querySelectorAll("g[opacity*='0.7']")];
 
   this.hidden = [rect, lines, text];
-  this.setOp(this.hidden, 0);
+  this.hidden2 = [[this.svg.querySelectorAll("rect[fill-opacity*='0.6']")], [this.svg.querySelectorAll("g[opacity*='0.6']")]];
+
+  this.setOp(this.hidden, .05);
+  this.setOp(this.hidden2, .05);
 };
 
 SvgPanZoom.prototype.setOp = function(targets, v) {
@@ -940,12 +943,20 @@ SvgPanZoom.prototype.zoomAtPoint = function (zoomScale, point, zoomAbsolute) {
   //console.log(parent.transform.animVal[0].matrix.a);
   var zoomWeight = this.svg.getElementsByTagName("g")[0].transform.animVal[0].matrix.a;
   //var zoomWeight = parent.transform.animVal[0].matrix.a;
+  console.log(zoomWeight);
 
-  if (zoomWeight > this.zoomStart * 3) {
+  if (zoomWeight > this.zoomStart * 1.3) {
     this.setOp(this.hidden, 1);
   }
   else {
-    this.setOp(this.hidden, 0);
+    this.setOp(this.hidden, 0.05);
+  }
+
+  if (zoomWeight > this.zoomStart * 3) {
+    this.setOp(this.hidden2, 1);
+  }
+  else {
+    this.setOp(this.hidden2, 0.05);
   }
 
   var oldCTM = this.viewport.getCTM(),
