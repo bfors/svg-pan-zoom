@@ -705,27 +705,45 @@ SvgPanZoom.prototype.init = function (svg, options) {
   this.lastMouseWheelEventTime = Date.now();
   this.setupHandlers();
 
-  this.zoomStart= this.svg.getElementsByTagName("g")[0].transform.animVal[0].matrix.a;
+  this.zoomStart = this.getZoomWeight();
 
-  var rect = [this.svg.querySelectorAll("rect[fill-opacity*='0.7']")];
-  var lines = [this.svg.querySelectorAll("path[stroke-opacity*='0.7']")];
-  var text = [this.svg.querySelectorAll("g[opacity*='0.7']")];
+//  var rect = [this.svg.querySelectorAll("*[fill-opacity]:not(*[fill-opacity='1'])")];
+//  var lines = [this.svg.querySelectorAll("*[stroke-opacity]:not(*[stroke-opacity='1'])")];
+//  var text = [this.svg.querySelectorAll("*[opacity]:not(*[stroke-opacity='1'])")];
 
-  this.hidden = [rect, lines, text];
-  this.hidden2 = [[this.svg.querySelectorAll("rect[fill-opacity*='0.6']")], [this.svg.querySelectorAll("g[opacity*='0.6']")]];
+  var combine = [this.svg.querySelectorAll(["*[fill-opacity]:not(*[fill-opacity='1'])",
+    "*[stroke-opacity]:not(*[stroke-opacity='1'])",
+    "*[opacity]:not(*[stroke-opacity='1'])"])];
 
+  this.groupElements(combine)
+  this.hidden = combine;
   this.setOp(this.hidden, .05);
-  this.setOp(this.hidden2, .05);
 };
+
+SvgPanZoom.prototype.setOpacity = function() {
+  if(this.getZoomWeight() > this.zoomStart * 3){
+    this.setOp(this.hidden, 1);
+  }
+  else if(this.getZoomWeight() <= this.zoomStart * 3){
+    this.setOp(this.hidden, .05);
+  }
+}
+
+SvgPanZoom.prototype.getZoomWeight = function() {
+  return this.svg.getElementsByTagName("g")[0].transform.animVal[0].matrix.a;
+}
+
+SvgPanZoom.prototype.groupElements = function(elements) {
+  console.log(elements);
+  return 1;
+}
 
 SvgPanZoom.prototype.setOp = function(targets, v) {
   for(var i=0; i<targets.length; i+=1){
     var target = targets[i];
       for(var j=0; j<target.length; j+=1){
-      var el = target[j]
-        for(var k=0; k<el.length; k+=1){
-          el[k].style.opacity = v;
-        }
+      var el = target[j];
+        el.style.opacity = v;
       }
   }
 };
@@ -939,25 +957,10 @@ SvgPanZoom.prototype.zoomAtPoint = function (zoomScale, point, zoomAbsolute) {
     zoomScale = zoomScale / this.getZoom();
   }
 
-
-  //console.log(parent.transform.animVal[0].matrix.a);
-  var zoomWeight = this.svg.getElementsByTagName("g")[0].transform.animVal[0].matrix.a;
-  //var zoomWeight = parent.transform.animVal[0].matrix.a;
+  var zoomWeight = this.getZoomWeight();
   console.log(zoomWeight);
 
-  if (zoomWeight > this.zoomStart * 1.3) {
-    this.setOp(this.hidden, 1);
-  }
-  else {
-    this.setOp(this.hidden, 0.05);
-  }
-
-  if (zoomWeight > this.zoomStart * 3) {
-    this.setOp(this.hidden2, 1);
-  }
-  else {
-    this.setOp(this.hidden2, 0.05);
-  }
+  this.setOpacity();
 
   var oldCTM = this.viewport.getCTM(),
     relativePoint = point.matrixTransform(oldCTM.inverse()),
