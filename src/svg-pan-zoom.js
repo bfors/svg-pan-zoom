@@ -120,6 +120,8 @@ SvgPanZoom.prototype.init = function (svg, options) {
   var text = [this.svg.querySelectorAll("g[opacity*='0.7']")];
 
   this.hidden = [rect, lines, text];
+  this.hidden2 = [[this.svg.querySelectorAll("rect[fill-opacity*='0.7']")]];
+
   this.setOp(this.hidden, 0);
 };
 
@@ -354,6 +356,13 @@ SvgPanZoom.prototype.zoomAtPoint = function (zoomScale, point, zoomAbsolute) {
   }
   else {
     this.setOp(this.hidden, 0);
+  }
+
+  if (zoomWeight > this.zoomStart * 6) {
+    this.setOp(this.hidden2, 1);
+  }
+  else {
+    this.setOp(this.hidden2, 0);
   }
 
   var oldCTM = this.viewport.getCTM(),
