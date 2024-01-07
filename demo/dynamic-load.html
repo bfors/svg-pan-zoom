@@ -2,7 +2,7 @@
 <html>
 
   <head>
-    <script src="../dist/svg-pan-zoom.js"></script>
+    <script src="../src/svg-pan-zoom.js"></script>
     <script src="jquery.min.js"></script>
   </head>
 
@@ -12,30 +12,31 @@
     <button id="swap" style="padding: 5px 20px; background: red; border: 1px solid #ff0404;">swap</button>
 
     <script>
-      // Don't use window.onLoad like this in production, because it can only listen to one function.
       $(function() {
         var lastEventListener = null;
 
         function createNewEmbed(src){
           var embed = document.createElement('embed');
+          this.embed = embed;
           embed.setAttribute('style', 'width: 500px; height: 500px; border:1px solid black;');
           embed.setAttribute('type', 'image/svg+xml');
           embed.setAttribute('src', src);
 
           document.getElementById('container').appendChild(embed)
 
-          lastEventListener = function(){
+          lastEventListener = function() {
             svgPanZoom(embed, {
               zoomEnabled: true,
-              controlIconsEnabled: true
+              controlIconsEnabled: true,
+              onZoom: function(options){
+              }
             });
           }
           embed.addEventListener('load', lastEventListener)
-
           return embed
         }
 
-        var lastEmbedSrc = 'tiger.svg'
+        var lastEmbedSrc = 'test.svg'
           , lastEmbed = createNewEmbed(lastEmbedSrc)
           ;
 
@@ -57,10 +58,10 @@
           // Remove last added svg
           removeEmbed()
 
-          if (lastEmbedSrc == 'tiger.svg') {
+          if (lastEmbedSrc == 'test.svg') {
             lastEmbedSrc = 'Tux.svg'
           } else {
-            lastEmbedSrc = 'tiger.svg'
+            lastEmbedSrc = 'test.svg'
           }
 
           lastEmbed = createNewEmbed(lastEmbedSrc)

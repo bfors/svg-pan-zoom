@@ -596,7 +596,7 @@ var Wheel = require("./uniwheel"),
   SvgUtils = require("./svg-utilities"),
   ShadowViewport = require("./shadow-viewport");
 
-var SvgPanZoom = function(svg, options) {
+var SvgPanZoom = function (svg, options) {
   this.init(svg, options);
 };
 
@@ -626,10 +626,11 @@ var optionsDefaults = {
 
 var passiveListenerOption = { passive: true };
 
-SvgPanZoom.prototype.init = function(svg, options) {
+SvgPanZoom.prototype.init = function (svg, options) {
   var that = this;
 
   this.svg = svg;
+
   this.defs = svg.querySelector("defs");
 
   // Add default attributes to SVG
@@ -660,27 +661,27 @@ SvgPanZoom.prototype.init = function(svg, options) {
       center: this.options.center,
       refreshRate: this.options.refreshRate,
       // Put callbacks into functions as they can change through time
-      beforeZoom: function(oldScale, newScale) {
+      beforeZoom: function (oldScale, newScale) {
         if (that.viewport && that.options.beforeZoom) {
           return that.options.beforeZoom(oldScale, newScale);
         }
       },
-      onZoom: function(scale) {
+      onZoom: function (scale) {
         if (that.viewport && that.options.onZoom) {
           return that.options.onZoom(scale);
         }
       },
-      beforePan: function(oldPoint, newPoint) {
+      beforePan: function (oldPoint, newPoint) {
         if (that.viewport && that.options.beforePan) {
           return that.options.beforePan(oldPoint, newPoint);
         }
       },
-      onPan: function(point) {
+      onPan: function (point) {
         if (that.viewport && that.options.onPan) {
           return that.options.onPan(point);
         }
       },
-      onUpdatedCTM: function(ctm) {
+      onUpdatedCTM: function (ctm) {
         if (that.viewport && that.options.onUpdatedCTM) {
           return that.options.onUpdatedCTM(ctm);
         }
@@ -703,52 +704,79 @@ SvgPanZoom.prototype.init = function(svg, options) {
   // Init events handlers
   this.lastMouseWheelEventTime = Date.now();
   this.setupHandlers();
+
+  //this.zoomStart = parent.transform.animVal[0].matrix.a;
+
+  this.zoomStart=1;
+  //console.log( [document.getElementById('container').querySelectorAll("rect[fill-opacity*='0.7']")]);
+  console.log(document.getElementById('container'));
+  var rect = [document.embeds[0].querySelectorAll("rect[fill-opacity*='0.7']")];
+  var lines = [document.embeds[0].querySelectorAll("path[stroke-opacity*='0.7']")];
+  var text = [document.embeds[0].querySelectorAll("g[opacity*='0.7']")];
+
+  this.hidden = [rect, lines, text];
+  this.setOp(this.hidden, 0);
 };
+
+SvgPanZoom.prototype.setOp = function(targets, v) {
+  console.log(targets)
+  console.log(v)
+//  for (var t in targets) {
+//    for (var el in t) {
+//      el.style.opacity=v;
+//    }
+//  }
+};
+
+SvgPanZoom.prototype.myFunc = function(){
+  console.log("myfunc");
+};
+
 
 /**
  * Register event handlers
  */
-SvgPanZoom.prototype.setupHandlers = function() {
+SvgPanZoom.prototype.setupHandlers = function () {
   var that = this,
     prevEvt = null; // use for touchstart event to detect double tap
 
   this.eventListeners = {
     // Mouse down group
-    mousedown: function(evt) {
+    mousedown: function (evt) {
       var result = that.handleMouseDown(evt, prevEvt);
       prevEvt = evt;
       return result;
     },
-    touchstart: function(evt) {
+    touchstart: function (evt) {
       var result = that.handleMouseDown(evt, prevEvt);
       prevEvt = evt;
       return result;
     },
 
     // Mouse up group
-    mouseup: function(evt) {
+    mouseup: function (evt) {
       return that.handleMouseUp(evt);
     },
-    touchend: function(evt) {
+    touchend: function (evt) {
       return that.handleMouseUp(evt);
     },
 
     // Mouse move group
-    mousemove: function(evt) {
+    mousemove: function (evt) {
       return that.handleMouseMove(evt);
     },
-    touchmove: function(evt) {
+    touchmove: function (evt) {
       return that.handleMouseMove(evt);
     },
 
     // Mouse leave group
-    mouseleave: function(evt) {
+    mouseleave: function (evt) {
       return that.handleMouseUp(evt);
     },
-    touchleave: function(evt) {
+    touchleave: function (evt) {
       return that.handleMouseUp(evt);
     },
-    touchcancel: function(evt) {
+    touchcancel: function (evt) {
       return that.handleMouseUp(evt);
     }
   };
@@ -794,12 +822,12 @@ SvgPanZoom.prototype.setupHandlers = function() {
 /**
  * Enable ability to zoom using mouse wheel
  */
-SvgPanZoom.prototype.enableMouseWheelZoom = function() {
+SvgPanZoom.prototype.enableMouseWheelZoom = function () {
   if (!this.options.mouseWheelZoomEnabled) {
     var that = this;
 
     // Mouse wheel listener
-    this.wheelListener = function(evt) {
+    this.wheelListener = function (evt) {
       return that.handleMouseWheel(evt);
     };
 
@@ -818,7 +846,7 @@ SvgPanZoom.prototype.enableMouseWheelZoom = function() {
 /**
  * Disable ability to zoom using mouse wheel
  */
-SvgPanZoom.prototype.disableMouseWheelZoom = function() {
+SvgPanZoom.prototype.disableMouseWheelZoom = function () {
   if (this.options.mouseWheelZoomEnabled) {
     var isPassiveListener = !this.options.preventMouseEventsDefault;
     Wheel.off(
@@ -835,7 +863,7 @@ SvgPanZoom.prototype.disableMouseWheelZoom = function() {
  *
  * @param  {Event} evt
  */
-SvgPanZoom.prototype.handleMouseWheel = function(evt) {
+SvgPanZoom.prototype.handleMouseWheel = function (evt) {
   if (!this.options.zoomEnabled || this.state !== "none") {
     return;
   }
@@ -883,7 +911,7 @@ SvgPanZoom.prototype.handleMouseWheel = function(evt) {
  * @param  {Boolean} zoomAbsolute Default false. If true, zoomScale is treated as an absolute value.
  *                                Otherwise, zoomScale is treated as a multiplied (e.g. 1.10 would zoom in 10%)
  */
-SvgPanZoom.prototype.zoomAtPoint = function(zoomScale, point, zoomAbsolute) {
+SvgPanZoom.prototype.zoomAtPoint = function (zoomScale, point, zoomAbsolute) {
   var originalState = this.viewport.getOriginalState();
 
   if (!zoomAbsolute) {
@@ -909,6 +937,18 @@ SvgPanZoom.prototype.zoomAtPoint = function(zoomScale, point, zoomAbsolute) {
     zoomScale = zoomScale / this.getZoom();
   }
 
+
+  //console.log(parent.transform.animVal[0].matrix.a);
+  var zoomWeight=1
+  //var zoomWeight = parent.transform.animVal[0].matrix.a;
+
+  if (zoomWeight > this.zoomStart * 3) {
+    this.setOp(this.hidden, 1);
+  }
+  else {
+    this.setOp(this.hidden, 0);
+  }
+
   var oldCTM = this.viewport.getCTM(),
     relativePoint = point.matrixTransform(oldCTM.inverse()),
     modifier = this.svg
@@ -929,7 +969,7 @@ SvgPanZoom.prototype.zoomAtPoint = function(zoomScale, point, zoomAbsolute) {
  * @param  {Float} scale
  * @param  {Boolean} absolute Marks zoom scale as relative or absolute
  */
-SvgPanZoom.prototype.zoom = function(scale, absolute) {
+SvgPanZoom.prototype.zoom = function (scale, absolute) {
   this.zoomAtPoint(
     scale,
     SvgUtils.getSvgCenterPoint(this.svg, this.width, this.height),
@@ -943,7 +983,7 @@ SvgPanZoom.prototype.zoom = function(scale, absolute) {
  * @param  {Float} scale
  * @param  {Boolean} absolute Marks zoom scale as relative or absolute
  */
-SvgPanZoom.prototype.publicZoom = function(scale, absolute) {
+SvgPanZoom.prototype.publicZoom = function (scale, absolute) {
   if (absolute) {
     scale = this.computeFromRelativeZoom(scale);
   }
@@ -958,7 +998,7 @@ SvgPanZoom.prototype.publicZoom = function(scale, absolute) {
  * @param  {SVGPoint|Object} point    An object that has x and y attributes
  * @param  {Boolean} absolute Marks zoom scale as relative or absolute
  */
-SvgPanZoom.prototype.publicZoomAtPoint = function(scale, point, absolute) {
+SvgPanZoom.prototype.publicZoomAtPoint = function (scale, point, absolute) {
   if (absolute) {
     // Transform zoom into a relative value
     scale = this.computeFromRelativeZoom(scale);
@@ -981,7 +1021,7 @@ SvgPanZoom.prototype.publicZoomAtPoint = function(scale, point, absolute) {
  *
  * @return {Float} zoom scale
  */
-SvgPanZoom.prototype.getZoom = function() {
+SvgPanZoom.prototype.getZoom = function () {
   return this.viewport.getZoom();
 };
 
@@ -990,7 +1030,7 @@ SvgPanZoom.prototype.getZoom = function() {
  *
  * @return {Float} zoom scale
  */
-SvgPanZoom.prototype.getRelativeZoom = function() {
+SvgPanZoom.prototype.getRelativeZoom = function () {
   return this.viewport.getRelativeZoom();
 };
 
@@ -1000,14 +1040,14 @@ SvgPanZoom.prototype.getRelativeZoom = function() {
  * @param  {Float} zoom
  * @return {Float} zoom scale
  */
-SvgPanZoom.prototype.computeFromRelativeZoom = function(zoom) {
+SvgPanZoom.prototype.computeFromRelativeZoom = function (zoom) {
   return zoom * this.viewport.getOriginalState().zoom;
 };
 
 /**
  * Set zoom to initial state
  */
-SvgPanZoom.prototype.resetZoom = function() {
+SvgPanZoom.prototype.resetZoom = function () {
   var originalState = this.viewport.getOriginalState();
 
   this.zoom(originalState.zoom, true);
@@ -1016,14 +1056,14 @@ SvgPanZoom.prototype.resetZoom = function() {
 /**
  * Set pan to initial state
  */
-SvgPanZoom.prototype.resetPan = function() {
+SvgPanZoom.prototype.resetPan = function () {
   this.pan(this.viewport.getOriginalState());
 };
 
 /**
  * Set pan and zoom to initial state
  */
-SvgPanZoom.prototype.reset = function() {
+SvgPanZoom.prototype.reset = function () {
   this.resetZoom();
   this.resetPan();
 };
@@ -1034,7 +1074,7 @@ SvgPanZoom.prototype.reset = function() {
  *
  * @param {Event} evt
  */
-SvgPanZoom.prototype.handleDblClick = function(evt) {
+SvgPanZoom.prototype.handleDblClick = function (evt) {
   if (this.options.preventMouseEventsDefault) {
     if (evt.preventDefault) {
       evt.preventDefault();
@@ -1070,7 +1110,7 @@ SvgPanZoom.prototype.handleDblClick = function(evt) {
  *
  * @param {Event} evt
  */
-SvgPanZoom.prototype.handleMouseDown = function(evt, prevEvt) {
+SvgPanZoom.prototype.handleMouseDown = function (evt, prevEvt) {
   if (this.options.preventMouseEventsDefault) {
     if (evt.preventDefault) {
       evt.preventDefault();
@@ -1099,7 +1139,7 @@ SvgPanZoom.prototype.handleMouseDown = function(evt, prevEvt) {
  *
  * @param  {Event} evt
  */
-SvgPanZoom.prototype.handleMouseMove = function(evt) {
+SvgPanZoom.prototype.handleMouseMove = function (evt) {
   if (this.options.preventMouseEventsDefault) {
     if (evt.preventDefault) {
       evt.preventDefault();
@@ -1111,8 +1151,8 @@ SvgPanZoom.prototype.handleMouseMove = function(evt) {
   if (this.state === "pan" && this.options.panEnabled) {
     // Pan mode
     var point = SvgUtils.getEventPoint(evt, this.svg).matrixTransform(
-        this.firstEventCTM.inverse()
-      ),
+      this.firstEventCTM.inverse()
+    ),
       viewportCTM = this.firstEventCTM.translate(
         point.x - this.stateOrigin.x,
         point.y - this.stateOrigin.y
@@ -1127,7 +1167,7 @@ SvgPanZoom.prototype.handleMouseMove = function(evt) {
  *
  * @param {Event} evt
  */
-SvgPanZoom.prototype.handleMouseUp = function(evt) {
+SvgPanZoom.prototype.handleMouseUp = function (evt) {
   if (this.options.preventMouseEventsDefault) {
     if (evt.preventDefault) {
       evt.preventDefault();
@@ -1146,7 +1186,7 @@ SvgPanZoom.prototype.handleMouseUp = function(evt) {
  * Adjust viewport size (only) so it will fit in SVG
  * Does not center image
  */
-SvgPanZoom.prototype.fit = function() {
+SvgPanZoom.prototype.fit = function () {
   var viewBox = this.viewport.getViewBox(),
     newScale = Math.min(
       this.width / viewBox.width,
@@ -1160,7 +1200,7 @@ SvgPanZoom.prototype.fit = function() {
  * Adjust viewport size (only) so it will contain the SVG
  * Does not center image
  */
-SvgPanZoom.prototype.contain = function() {
+SvgPanZoom.prototype.contain = function () {
   var viewBox = this.viewport.getViewBox(),
     newScale = Math.max(
       this.width / viewBox.width,
@@ -1174,7 +1214,7 @@ SvgPanZoom.prototype.contain = function() {
  * Adjust viewport pan (only) so it will be centered in SVG
  * Does not zoom/fit/contain image
  */
-SvgPanZoom.prototype.center = function() {
+SvgPanZoom.prototype.center = function () {
   var viewBox = this.viewport.getViewBox(),
     offsetX =
       (this.width - (viewBox.width + viewBox.x * 2) * this.getZoom()) * 0.5,
@@ -1188,7 +1228,7 @@ SvgPanZoom.prototype.center = function() {
  * Update content cached BorderBox
  * Use when viewport contents change
  */
-SvgPanZoom.prototype.updateBBox = function() {
+SvgPanZoom.prototype.updateBBox = function () {
   this.viewport.simpleViewBoxCache();
 };
 
@@ -1197,7 +1237,7 @@ SvgPanZoom.prototype.updateBBox = function() {
  *
  * @param  {Object} point {x: 0, y: 0}
  */
-SvgPanZoom.prototype.pan = function(point) {
+SvgPanZoom.prototype.pan = function (point) {
   var viewportCTM = this.viewport.getCTM();
   viewportCTM.e = point.x;
   viewportCTM.f = point.y;
@@ -1209,7 +1249,7 @@ SvgPanZoom.prototype.pan = function(point) {
  *
  * @param  {Object} point {x: 0, y: 0}
  */
-SvgPanZoom.prototype.panBy = function(point) {
+SvgPanZoom.prototype.panBy = function (point) {
   var viewportCTM = this.viewport.getCTM();
   viewportCTM.e += point.x;
   viewportCTM.f += point.y;
@@ -1221,7 +1261,7 @@ SvgPanZoom.prototype.panBy = function(point) {
  *
  * @return {Object} {x: 0, y: 0}
  */
-SvgPanZoom.prototype.getPan = function() {
+SvgPanZoom.prototype.getPan = function () {
   var state = this.viewport.getState();
 
   return { x: state.x, y: state.y };
@@ -1230,7 +1270,7 @@ SvgPanZoom.prototype.getPan = function() {
 /**
  * Recalculates cached svg dimensions and controls position
  */
-SvgPanZoom.prototype.resize = function() {
+SvgPanZoom.prototype.resize = function () {
   // Get dimensions
   var boundingClientRectNormalized = SvgUtils.getBoundingClientRectNormalized(
     this.svg
@@ -1254,7 +1294,7 @@ SvgPanZoom.prototype.resize = function() {
 /**
  * Unbind mouse events, free callbacks and destroy public instance
  */
-SvgPanZoom.prototype.destroy = function() {
+SvgPanZoom.prototype.destroy = function () {
   var that = this;
 
   // Free callbacks
@@ -1293,7 +1333,7 @@ SvgPanZoom.prototype.destroy = function() {
   this.reset();
 
   // Remove instance from instancesStore
-  instancesStore = instancesStore.filter(function(instance) {
+  instancesStore = instancesStore.filter(function (instance) {
     return instance.svg !== that.svg;
   });
 
@@ -1306,7 +1346,7 @@ SvgPanZoom.prototype.destroy = function() {
   // Destroy public instance and rewrite getPublicInstance
   delete this.publicInstance;
   delete this.pi;
-  this.getPublicInstance = function() {
+  this.getPublicInstance = function () {
     return null;
   };
 };
@@ -1316,193 +1356,193 @@ SvgPanZoom.prototype.destroy = function() {
  *
  * @return {Object} Public instance object
  */
-SvgPanZoom.prototype.getPublicInstance = function() {
+SvgPanZoom.prototype.getPublicInstance = function () {
   var that = this;
 
   // Create cache
   if (!this.publicInstance) {
     this.publicInstance = this.pi = {
       // Pan
-      enablePan: function() {
+      enablePan: function () {
         that.options.panEnabled = true;
         return that.pi;
       },
-      disablePan: function() {
+      disablePan: function () {
         that.options.panEnabled = false;
         return that.pi;
       },
-      isPanEnabled: function() {
+      isPanEnabled: function () {
         return !!that.options.panEnabled;
       },
-      pan: function(point) {
+      pan: function (point) {
         that.pan(point);
         return that.pi;
       },
-      panBy: function(point) {
+      panBy: function (point) {
         that.panBy(point);
         return that.pi;
       },
-      getPan: function() {
+      getPan: function () {
         return that.getPan();
       },
       // Pan event
-      setBeforePan: function(fn) {
+      setBeforePan: function (fn) {
         that.options.beforePan =
           fn === null ? null : Utils.proxy(fn, that.publicInstance);
         return that.pi;
       },
-      setOnPan: function(fn) {
+      setOnPan: function (fn) {
         that.options.onPan =
           fn === null ? null : Utils.proxy(fn, that.publicInstance);
         return that.pi;
       },
       // Zoom and Control Icons
-      enableZoom: function() {
+      enableZoom: function () {
         that.options.zoomEnabled = true;
         return that.pi;
       },
-      disableZoom: function() {
+      disableZoom: function () {
         that.options.zoomEnabled = false;
         return that.pi;
       },
-      isZoomEnabled: function() {
+      isZoomEnabled: function () {
         return !!that.options.zoomEnabled;
       },
-      enableControlIcons: function() {
+      enableControlIcons: function () {
         if (!that.options.controlIconsEnabled) {
           that.options.controlIconsEnabled = true;
           ControlIcons.enable(that);
         }
         return that.pi;
       },
-      disableControlIcons: function() {
+      disableControlIcons: function () {
         if (that.options.controlIconsEnabled) {
           that.options.controlIconsEnabled = false;
           ControlIcons.disable(that);
         }
         return that.pi;
       },
-      isControlIconsEnabled: function() {
+      isControlIconsEnabled: function () {
         return !!that.options.controlIconsEnabled;
       },
       // Double click zoom
-      enableDblClickZoom: function() {
+      enableDblClickZoom: function () {
         that.options.dblClickZoomEnabled = true;
         return that.pi;
       },
-      disableDblClickZoom: function() {
+      disableDblClickZoom: function () {
         that.options.dblClickZoomEnabled = false;
         return that.pi;
       },
-      isDblClickZoomEnabled: function() {
+      isDblClickZoomEnabled: function () {
         return !!that.options.dblClickZoomEnabled;
       },
       // Mouse wheel zoom
-      enableMouseWheelZoom: function() {
+      enableMouseWheelZoom: function () {
         that.enableMouseWheelZoom();
         return that.pi;
       },
-      disableMouseWheelZoom: function() {
+      disableMouseWheelZoom: function () {
         that.disableMouseWheelZoom();
         return that.pi;
       },
-      isMouseWheelZoomEnabled: function() {
+      isMouseWheelZoomEnabled: function () {
         return !!that.options.mouseWheelZoomEnabled;
       },
       // Zoom scale and bounds
-      setZoomScaleSensitivity: function(scale) {
+      setZoomScaleSensitivity: function (scale) {
         that.options.zoomScaleSensitivity = scale;
         return that.pi;
       },
-      setMinZoom: function(zoom) {
+      setMinZoom: function (zoom) {
         that.options.minZoom = zoom;
         return that.pi;
       },
-      setMaxZoom: function(zoom) {
+      setMaxZoom: function (zoom) {
         that.options.maxZoom = zoom;
         return that.pi;
       },
       // Zoom event
-      setBeforeZoom: function(fn) {
+      setBeforeZoom: function (fn) {
         that.options.beforeZoom =
           fn === null ? null : Utils.proxy(fn, that.publicInstance);
         return that.pi;
       },
-      setOnZoom: function(fn) {
+      setOnZoom: function (fn) {
         that.options.onZoom =
           fn === null ? null : Utils.proxy(fn, that.publicInstance);
         return that.pi;
       },
       // Zooming
-      zoom: function(scale) {
+      zoom: function (scale) {
         that.publicZoom(scale, true);
         return that.pi;
       },
-      zoomBy: function(scale) {
+      zoomBy: function (scale) {
         that.publicZoom(scale, false);
         return that.pi;
       },
-      zoomAtPoint: function(scale, point) {
+      zoomAtPoint: function (scale, point) {
         that.publicZoomAtPoint(scale, point, true);
         return that.pi;
       },
-      zoomAtPointBy: function(scale, point) {
+      zoomAtPointBy: function (scale, point) {
         that.publicZoomAtPoint(scale, point, false);
         return that.pi;
       },
-      zoomIn: function() {
+      zoomIn: function () {
         this.zoomBy(1 + that.options.zoomScaleSensitivity);
         return that.pi;
       },
-      zoomOut: function() {
+      zoomOut: function () {
         this.zoomBy(1 / (1 + that.options.zoomScaleSensitivity));
         return that.pi;
       },
-      getZoom: function() {
+      getZoom: function () {
         return that.getRelativeZoom();
       },
       // CTM update
-      setOnUpdatedCTM: function(fn) {
+      setOnUpdatedCTM: function (fn) {
         that.options.onUpdatedCTM =
           fn === null ? null : Utils.proxy(fn, that.publicInstance);
         return that.pi;
       },
       // Reset
-      resetZoom: function() {
+      resetZoom: function () {
         that.resetZoom();
         return that.pi;
       },
-      resetPan: function() {
+      resetPan: function () {
         that.resetPan();
         return that.pi;
       },
-      reset: function() {
+      reset: function () {
         that.reset();
         return that.pi;
       },
       // Fit, Contain and Center
-      fit: function() {
+      fit: function () {
         that.fit();
         return that.pi;
       },
-      contain: function() {
+      contain: function () {
         that.contain();
         return that.pi;
       },
-      center: function() {
+      center: function () {
         that.center();
         return that.pi;
       },
       // Size and Resize
-      updateBBox: function() {
+      updateBBox: function () {
         that.updateBBox();
         return that.pi;
       },
-      resize: function() {
+      resize: function () {
         that.resize();
         return that.pi;
       },
-      getSizes: function() {
+      getSizes: function () {
         return {
           width: that.width,
           height: that.height,
@@ -1511,7 +1551,7 @@ SvgPanZoom.prototype.getPublicInstance = function() {
         };
       },
       // Destroy
-      destroy: function() {
+      destroy: function () {
         that.destroy();
         return that.pi;
       }
@@ -1529,7 +1569,7 @@ SvgPanZoom.prototype.getPublicInstance = function() {
  */
 var instancesStore = [];
 
-var svgPanZoom = function(elementOrSelector, options) {
+var svgPanZoom = function (elementOrSelector, options) {
   var svg = Utils.getSvg(elementOrSelector);
 
   if (svg === null) {

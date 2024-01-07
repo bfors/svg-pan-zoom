@@ -1,0 +1,15 @@
+stroke-opacity="0.7"
+var op =  [...document.querySelectorAll("path[stroke-opacity*='0.7']")]
+op.forEach(c => c.style.opacity=0)
+
+<text x="787" y="1223" fill="#FFFFFF" font-family="Helvetica" font-size="12px" text-anchor="middle">
+
+
+setOp = function(targets, v) {
+  targets.forEach(t =>
+        t.forEach(el => el.style.opacity=v));
+}
+
+var rect = [...document.querySelectorAll("rect[fill-opacity*='0.7']")]
+var lines = [...document.querySelectorAll("path[stroke-opacity*='0.7']")]
+var text = [...document.querySelectorAll("g[opacity*='0.7']")]
