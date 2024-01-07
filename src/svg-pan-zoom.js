@@ -113,27 +113,26 @@ SvgPanZoom.prototype.init = function (svg, options) {
   this.lastMouseWheelEventTime = Date.now();
   this.setupHandlers();
 
-  //this.zoomStart = parent.transform.animVal[0].matrix.a;
+  this.zoomStart= this.svg.getElementsByTagName("g")[0].transform.animVal[0].matrix.a;
 
-  this.zoomStart=1;
-  //console.log( [document.getElementById('container').querySelectorAll("rect[fill-opacity*='0.7']")]);
-  console.log(document.getElementById('container'));
-  var rect = [document.embeds[0].querySelectorAll("rect[fill-opacity*='0.7']")];
-  var lines = [document.embeds[0].querySelectorAll("path[stroke-opacity*='0.7']")];
-  var text = [document.embeds[0].querySelectorAll("g[opacity*='0.7']")];
+  var rect = [this.svg.querySelectorAll("rect[fill-opacity*='0.7']")];
+  var lines = [this.svg.querySelectorAll("path[stroke-opacity*='0.7']")];
+  var text = [this.svg.querySelectorAll("g[opacity*='0.7']")];
 
   this.hidden = [rect, lines, text];
   this.setOp(this.hidden, 0);
 };
 
 SvgPanZoom.prototype.setOp = function(targets, v) {
-  console.log(targets)
-  console.log(v)
-//  for (var t in targets) {
-//    for (var el in t) {
-//      el.style.opacity=v;
-//    }
-//  }
+  for(var i=0; i<targets.length; i+=1){
+    var target = targets[i];
+      for(var j=0; j<target.length; j+=1){
+      var el = target[j]
+        for(var k=0; k<el.length; k+=1){
+          el[k].style.opacity = v;
+        }
+      }
+  }
 };
 
 SvgPanZoom.prototype.myFunc = function(){
@@ -347,7 +346,7 @@ SvgPanZoom.prototype.zoomAtPoint = function (zoomScale, point, zoomAbsolute) {
 
 
   //console.log(parent.transform.animVal[0].matrix.a);
-  var zoomWeight=1
+  var zoomWeight = this.svg.getElementsByTagName("g")[0].transform.animVal[0].matrix.a;
   //var zoomWeight = parent.transform.animVal[0].matrix.a;
 
   if (zoomWeight > this.zoomStart * 3) {
