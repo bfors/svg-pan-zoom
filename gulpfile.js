@@ -38,7 +38,7 @@ function compile() {
     .pipe(header(banner, { pkg: pkg }))
     .pipe(gulp.dest("./dist/"))
     .pipe(rename("svg-pan-zoom.min.js"))
-    .pipe(uglify())
+    //.pipe(uglify())
     .pipe(header(banner, { pkg: pkg }))
     .pipe(gulp.dest("./dist/"));
 }

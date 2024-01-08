@@ -114,42 +114,65 @@ SvgPanZoom.prototype.init = function (svg, options) {
   this.setupHandlers();
 
   this.zoomStart = this.getZoomWeight();
-
   var combine = [this.svg.querySelectorAll(["*[fill-opacity]:not(*[fill-opacity='1'])",
     "*[stroke-opacity]:not(*[stroke-opacity='1'])",
-    "*[opacity]:not(*[stroke-opacity='1'])"])];
+    "*[opacity]:not(*[stroke-opacity='1'])",
+    "*[style*='opacity']:not(*[style*='opacity=1'])",
+    ])];
 
-  this.groupElements(combine)
-  this.hidden = combine;
-  this.setOp(this.hidden, .05);
+  var groups = this.groupElements(combine);
+  this.hidden = groups;
+  this.setOpacity(0.01);
 };
 
-SvgPanZoom.prototype.setOpacity = function() {
-  if(this.getZoomWeight() > this.zoomStart * 3){
-    this.setOp(this.hidden, 1);
-  }
-  else if(this.getZoomWeight() <= this.zoomStart * 3){
-    this.setOp(this.hidden, .05);
-  }
+SvgPanZoom.prototype.setOpacity = function(val) {
+
+  var keys = Object.keys(this.hidden).sort().reverse();
+  var weight = 1;
+  keys.forEach(key => {
+    if(val){
+      this.setOp(this.hidden[key], val);
+    }
+    else{
+      if(this.getZoomWeight() > this.zoomStart + weight){
+        this.setOp(this.hidden[key], 1);
+      }
+      else if(this.getZoomWeight() <= this.zoomStart + weight){
+        this.setOp(this.hidden[key], .01);
+      }
+      weight += weight;
+    }
+  });
+
 }
 
 SvgPanZoom.prototype.getZoomWeight = function() {
-  return this.svg.getElementsByTagName("g")[0].transform.animVal[0].matrix.a;
+  return this.getPublicInstance().getSizes().realZoom;
 }
 
 SvgPanZoom.prototype.groupElements = function(elements) {
-  console.log(elements);
-  return 1;
+  var groups = [];
+  elements[0].forEach(el => {
+    const fill = el.getAttribute('fill-opacity');
+    const stroke = el.getAttribute('stroke-opacity');
+    const op = el.getAttribute('opacity');
+    const style = el.style.opacity;
+    const opacity = fill || stroke || op || style;
+
+    if (!groups[opacity]){
+      groups[opacity] = [];
+    }
+
+    groups[opacity].push(el);
+  });
+
+  return groups;
 }
 
 SvgPanZoom.prototype.setOp = function(targets, v) {
-  for(var i=0; i<targets.length; i+=1){
-    var target = targets[i];
-      for(var j=0; j<target.length; j+=1){
-      var el = target[j];
-        el.style.opacity = v;
-      }
-  }
+  targets.forEach(element => {
+    element.style.opacity = v;
+  });
 };
 
 /**
@@ -357,7 +380,7 @@ SvgPanZoom.prototype.zoomAtPoint = function (zoomScale, point, zoomAbsolute) {
   }
 
   var zoomWeight = this.getZoomWeight();
-  console.log(zoomWeight);
+  console.log(this.getPublicInstance().getSizes().realZoom);
 
   this.setOpacity();
 
